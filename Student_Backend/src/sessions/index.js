@@ -14,7 +14,7 @@ router.get('/', verifyToken, async (req, res) => {
 
         //Fetching session details using customer_id
         const result = await db.query(
-            `SELECT session_id,session_name,session_tagline,session_tags,session_fee,session_thumbnail FROM session_tables WHERE customer_id=${customer_id}  AND session_type="recorded session"`,
+            `SELECT session_id,session_name,session_tagline,session_tags,session_fee,session_thumbnail FROM session_tables WHERE customer_id=${customer_id}  AND session_type="Recorded"`,
             { type: db.QueryTypes.SELECT }
         );
 
@@ -45,7 +45,7 @@ router.get('/live', verifyToken, async (req, res) => {
 
         //Fetching session details using customer_id
         const result = await db.query(
-        `SELECT session_id,session_name,session_description,session_tagline,session_tags,session_fee,session_thumbnail FROM session_tables WHERE customer_id=${customer_id} AND session_type="live session"`,
+        `SELECT session_id,session_name,session_description,session_tagline,session_tags,session_fee,session_thumbnail FROM session_tables WHERE customer_id=${customer_id} AND session_type="Live"`,
         { type: db.QueryTypes.SELECT }
         );
 

@@ -2,7 +2,7 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const express=require('express');
-const {BOUNCE_MAIL,SENDERS_MAIL,JWT_KEY}=require('../../env');
+const {BOUNCE_MAIL,SENDERS_MAIL,JWT_KEY,FILE_UPLOAD_PATH_CLIENT}=require('../../env');
 const { db } = require('../db/sql');
 //For student table
 const Student = require('../models/student_table');
@@ -71,9 +71,22 @@ router.post('/register', async (req, res) => {
         });
 
         //Hit email api for welcome email
+        
+        const myobj={
+            "to": "+917875192358",
+            "from": "+16672136410",
+            "sender_name": "oyesters_training",
+            "body": "This is trial body",
+            "method": "twilio",
+            "sender_id": 2,
+            "customer_id": 1
+        }
+
+        JWT_token=codingJWT(myobj)
+        res.redirect(`http://localhost:5050/sms/${JWT_token}/`)
         //Hit sms api for welcome sms
 
-        res.redirect(307, '/student/auth/login');
+        // res.redirect(307, '/student/auth/login');
     } 
     catch (err) {
         console.log("Error")
@@ -219,7 +232,7 @@ router.post('/forgotPassword', async (req, res) => {
             subject: 'Welcome!!!!!!',
             htmlbody: `Nice to have you here.
                 <h2>Reset Your Password</h2>
-                <a href="http://localhost:3002/student/auth/reset-password?oobCode=${encryptedData}">Reset</a>
+                <a href="http://localhost:3002/student/auth/resetPassword">Reset</a>
                 `,
         }
 
@@ -240,18 +253,10 @@ router.post('/forgotPassword', async (req, res) => {
 router.post('/resetPassword', async (req, res) => {
     try {
         const { student_email, new_password } = req.body;
+        console.log(req.body)
         //Verifying JWT token
-        jwt.verify(student_email, JWT_KEY, async (err, decoded) => {
-            if (err){
-                console.log(err)
-                return res.status(400).json({
-                    success: 0,
-                    error: 'Invalid Code',
-                });
-            }
-            console.log(decoded);
-    
-            //Hashing password
+ 
+        //Hashing password
             const salt = bcrypt.genSaltSync(10);
             new_hashed_password = await bcrypt.hashSync(new_password, salt);
     
@@ -272,7 +277,7 @@ router.post('/resetPassword', async (req, res) => {
                 success: 1,
                 error: '',
             });
-        });
+
     } 
     catch (err) {
         return res.status(500).json({
@@ -316,47 +321,76 @@ router.get('/profile', verifyToken, async (req, res) => {
     }
 });
   
-router.put('/profile', verifyToken, async (req, res) => {
+router.post('/profile', verifyToken, async(req, res) => {
     try {
-      const values = JSON.parse(req.body.values);
-      console.log(values);
+        console.log(req.files.file);
+        if (!req.files || !req.files.file)
+          return res.status(400).json({
+            success: 0,
+            error: 'Please Provide Some Attachment',
+        });
+    
+        console.log("Body",req.body);
+        if (!req.body.session_id)
+          return res.status(400).json({
+            success: 0,
+            error: 'Customer id not provided',
+        });
   
-      if (req.files && req.files.student_profile_picture) {
-        const file = req.files.student_profile_picture;
-        file.mv(`${process.env.FILE_UPLOAD_PATH_CLIENT}${file.name}`, (err) => {
+
+        const file = req.files.file;
+
+        const bData = await db.query(
+            `SELECT customer_storage_zone_password,customer_storage_zone_name FROM customer_tables WHERE customer_id=${req.body.customer_id} `,
+            { type: db.QueryTypes.SELECT }
+        );
+        console.log(bData);
+  
+    if (req.files && file) {
+        const file = req.files.file;
+        file.mv(`./${FILE_UPLOAD_PATH_CLIENT}/${file.name}`, async(err) => {
           if (err)
             return res.status(500).json({
               success: 0,
               error: 'unable to upload thumbnail',
               errorReturned: JSON.stringify(err),
             });
-          webp
-            .cwebp(
-              `${process.env.FILE_UPLOAD_PATH_CLIENT}${file.name}`,
-              `${process.env.FILE_UPLOAD_PATH_CLIENT}${file.name.substr(
-                0,
-                file.name.lastIndexOf('.')
-              )}.webp`,
-              '-q 80'
-            )
-            .then(async (response) => {
-              console.log(response);
-              values.student_profile_picture = 'url of profile';
-              console.log(values);
+            newpath=`./upload/${file.name}`
+                
+            const url =  `https://storage.bunnycdn.com/${bData[0].customer_storage_zone_name}/student_profile_pic/${file.name}`;
+
+            console.log(url)
+            const options = {
+                method: 'PUT', 
+                headers: {'Content-Type': 'application/octet-stream', 'AccessKey': bData[0].customer_storage_zone_password},
+                body: fs.createReadStream(newpath)
+            };
+
+            fetch(url, options)
+            .then(res => res.json())
+            .then(json =>{
+                console.log(json)
+                // const commands=  cmd.runSync(`
+                //   sudo rm -r ./upload/${file.name}
+                //   `)
+                //   console.log(commands);
+                })
+            .catch(err => console.error('error:' + err));
+         
   
-              const result = await Student.update(values, {
+            const result = await Student.update({student_profile_picture:`https://${bData[0].customer_storage_zone_name}.b-cdn.net/handouts/${file.name}`}, {
                 where: { student_id: req.user.student_id },
-              });
-  
-              return res.status(200).json({
-                success: 1,
-                result,
-              });
+            })
+            .then(()=>{
+                return res.status(200).json({
+                    success: 1,
+                    result,
+                });
             })
             .catch((err) => {
               console.log(err);
   
-              return res.status(400).json({
+            return res.status(400).json({
                 success: 0,
                 error: 'Unable to update profile',
                 errorReturned: err,
@@ -365,13 +399,10 @@ router.put('/profile', verifyToken, async (req, res) => {
           console.log('profile pic uploaded');
         });
       } else {
-        const result = await Student.update(values, {
-          where: { student_id: req.user.student_id },
-        });
-  
-        return res.status(200).json({
-          success: 1,
-          result,
+
+        return res.status(500).json({
+          success: 0,
+          result: "Unable to upload file"
         });
       }
     } catch (error) {
