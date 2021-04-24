@@ -1,0 +1,59 @@
+const {db}=require("../db/sql");
+const {DataTypes} =require("sequelize")
+
+const Comment=db.define("comment_table",{
+    comment_id:{
+        type:DataTypes.INTEGER,
+        allowNull:false,
+        autoIncrement:true,
+        primaryKey:true
+    },
+    customer_id:{
+        type:DataTypes.INTEGER,
+        references:{
+            model:"customer_tables",
+            key:"customer_id"
+        }
+    },
+    session_id:{
+        type:DataTypes.INTEGER,
+        references:{
+            model:"session_tables",
+            key:"session_id"
+        }
+    },
+    chapter_id:{
+        type:DataTypes.INTEGER,
+        references:{
+            model:"chapter_tables",
+            key:"chapter_id"
+        }
+    },
+    lesson_id:{
+        type:DataTypes.INTEGER,
+        references:{
+            model:"lesson_tables",
+            key:"lesson_id"
+        }
+    },
+    student_id:{
+        type:DataTypes.INTEGER,
+        references:{
+            model:"student_tables",
+            key:"student_id"
+        }
+    },
+    comment_content:{
+        type:DataTypes.STRING,
+        allowNull:false,
+    },
+    comment_img_url:{
+        type:DataTypes.STRING,
+        allowNull:true
+    }
+
+},{
+    timestamp:true
+})
+db.sync();
+module.exports=Comment
