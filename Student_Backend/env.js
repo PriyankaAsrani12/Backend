@@ -1,8 +1,8 @@
 module.exports={
     MYSQL_DATABASE : "student_backend",
     MYSQL_USER : "admin",
-    MYSQL_ROOT_PASSWORD : "admin1234",
-    DB_HOST : "oyesters-db-1.clcmspyxrtn3.ap-south-1.rds.amazonaws.com",
+    MYSQL_ROOT_PASSWORD : "s!Xjsor44P!cy389",
+    DB_HOST : "database-1.cungileps0kp.ap-south-1.rds.amazonaws.com",
 
     PORT : 3002, 
 
