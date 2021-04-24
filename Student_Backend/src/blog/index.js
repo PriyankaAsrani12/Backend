@@ -6,4 +6,8 @@ app.get('/',verifyToken,(req,res)=>{
     res.redirect(`http://localhost:3636/blog`)
 })
 
+<<<<<<< HEAD
 module.exports=app
+=======
+module.exports=app;
+>>>>>>> e504bb2d391e064a5999fcf1718d2fa72f324340
