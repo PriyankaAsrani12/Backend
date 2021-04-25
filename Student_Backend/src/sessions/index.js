@@ -95,12 +95,15 @@ router.get('/trainer/:id', verifyToken, async (req, res) => {
                 FROM customer_tables WHERE customer_id=${customer[0].customer_id}`,
                 { type: db.QueryTypes.SELECT }
             );
+            console.log(TrainerData[0])
         } 
         else {
             //If :id is not customer_id then fetch data from trainer_profiles table
             const sql14 = `SELECT * from trainer_profiles WHERE trainer_id=${req.params.id}`;
             TrainerData = await db.query(
                 sql14, { type: db.QueryTypes.SELECT });
+
+            console.log(TrainerData[0])
         }
         if (!TrainerData[0]){
             return res.status(400).json({
@@ -180,6 +183,7 @@ router.get('/details/:id', verifyToken, async (req, res) => {
             const sql14 = `SELECT trainer_full_name,trainer_experience,trainer_career_summary,trainer_occupation FROM trainer_profiles WHERE customer_id=${sessionData[0].customer_id} AND trainer_id=${sessionData[0].session_trainer_id}`;
             TrainerData = await db.query(sql14, { type: db.QueryTypes.SELECT });
         }
+        console.log(TrainerData[0])
         if (!TrainerData)
         return res.status(400).json({
             success: 0,
@@ -190,29 +194,29 @@ router.get('/details/:id', verifyToken, async (req, res) => {
         const sql3 = `SELECT item_id,item_name from library_items WHERE session_id=${req.params.id}`;
         const LibraryItems = await db.query(sql3, { type: db.QueryTypes.SELECT });
 
-        // const sql4 = `SELECT cart_item_status FROM cart_tables WHERE session_id=${req.params.id} AND student_id=${req.user.student_id}`;
-        // const status = await db.query(sql4, {
-        //     type: db.QueryTypes.SELECT,
-        // });
-        // let cart_item_status = null;
+        const sql4 = `SELECT cart_item_status FROM cart_tables WHERE session_id=${req.params.id} AND student_id=${req.user.student_id}`;
+        const status = await db.query(sql4, {
+            type: db.QueryTypes.SELECT,
+        });
+        let cart_item_status = null;
 
-        // // check enrollment
-        // const sql5=`
-        // SELECT
-        // student_cart_items,
-        // student_wish_list_items
-        // FROM 
-        // student_tables
-        // WHERE
-        // student_id=${req.user.student_id}
-        // `
-        // const enrollment=await db.query(sql5,{
-        //     type: db.QueryTypes.SELECT,
-        // })
+        // check enrollment
+        const sql5=`
+        SELECT
+        student_cart_items,
+        student_wish_list_items
+        FROM 
+        student_tables
+        WHERE
+        student_id=${req.user.student_id}
+        `
+        const enrollment=await db.query(sql5,{
+            type: db.QueryTypes.SELECT,
+        })
 
-        // if (status && status[0] && status[0].cart_item_status){
-        //     cart_item_status = status[0].cart_item_status;
-        // }
+        if (status && status[0] && status[0].cart_item_status){
+            cart_item_status = status[0].cart_item_status;
+        }
 
         // course content
         const ans = [];
@@ -273,6 +277,9 @@ router.get('/details/:id', verifyToken, async (req, res) => {
         const session = sessionData[0];
         session.chapter_learnings = chapter_learnings;
 
+        console.log(sessionData[0])
+        console.log(ans)
+        
         return res.status(200).json({
             success: 1,
             session: sessionData[0],

@@ -9,7 +9,7 @@ const codingJWT = (token) =>
     const encryptedData = jwt.sign(
         token,
         JWT_KEY,
-        { expiresIn: '1d',}
+        { expiresIn: '7d',}
     );
 
     return encryptedData

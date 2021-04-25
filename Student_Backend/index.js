@@ -2,8 +2,31 @@ const express = require('express');
 const {PORT} = require('./env');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const mysql = require('mysql');
+const morgan = require('morgan');
+const cors = require('cors');
+const fileUpload = require('express-fileupload');
+const cookieParser = require('cookie-parser');
+
+require('./src/db/sql');
+
 
 const app = express();
+
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+app.use(fileUpload());
+app.use(cookieParser());
+
+app.use(morgan('dev'));
+
+//Body Parser
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 //Swagger initialization
 const swaggerOptions={
@@ -14,7 +37,7 @@ const swaggerOptions={
             contact: {
                 name: "Priyanka Asrani",
             },
-            servers: ["http://localhost:3002"]
+            servers: ["http://localhost:5000"]
         }
     },
     apis: ["index.js"]
@@ -37,7 +60,7 @@ app.use("/api-docs-student", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *        name: body
  *        description: Registering student
  *        required: true
- *        example: {"student_first_name":"test","student_last_name":"test","student_phone_number":0123456789,"student_email":"testt@testt.testt","student_password":"12345678","customer_id":1}
+ *        example: {"values":{"student_first_name":"test","student_last_name":"test","student_phone_number":0123456789,"student_email":"testt@testt.testt","student_password":"12345678","customer_id":1}}
  *    responses:
  *      '200':
  *        description: successful operation
@@ -55,7 +78,7 @@ app.use("/api-docs-student", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *        name: body
  *        description: Logging in student
  *        required: true
- *        example: {"student_email":"testt@testt.testt","student_password":"12345678"}
+ *        example: {"values":{"student_email":"testt@testt.testt","student_password":"12345678"}}
  *    responses:
  *      '200':
  *        description: successful operation
@@ -65,6 +88,8 @@ app.use("/api-docs-student", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  * @swagger
  * /student/auth/logout:
  *  get:
+ *      tags:
+ *      - Authentication
  *      description: Logging out student
  *      responses:
  *         '200':
@@ -83,7 +108,7 @@ app.use("/api-docs-student", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *        name: body
  *        description: Emailing password reset
  *        required: true
- *        example: {"student_email":"testt@testt.testt"}
+ *        example: {"values":{"student_email":"testt@testt.testt"}}
  *    responses:
  *      '200':
  *        description: successful operation
@@ -101,7 +126,7 @@ app.use("/api-docs-student", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *        name: body
  *        description: Password reset
  *        required: true
- *        example: {"student_email":"testt@testt.testt","new_password":"01234"}
+ *        example: {"values":{"student_email":"testt@testt.testt","new_password":"01234"}}
  *    responses:
  *      '200':
  *        description: successful operation
@@ -243,7 +268,7 @@ app.use("/api-docs-student", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 /**
  * @swagger
- * /student/info/:
+ * /student/info/to_from:
  *  get:
  *      description: fetching student and customer details
  *      tags:
@@ -273,23 +298,6 @@ app.use("/api-docs-student", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  */
 
 
-/**
- * @swagger
- * /student/comment/:
- *  post:
- *    tags:
- *      - Comments
- *    summary: Posting comments
- *    parameters:
- *      - in: body
- *        name: body
- *        description: Posting comments
- *        required: true
- *        example: {" comment_content":"This is a comment"," comment_img_url":"Image url","chapter_id":1,"lesson_id":1,"session_id":1,"customer_id":1}
- *    responses:
- *      '200':
- *        description: successful operation
- */
 
 
 app.use('/student', require('./routes'));

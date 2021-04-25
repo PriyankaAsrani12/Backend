@@ -5,7 +5,8 @@ const verifyToken = (req, res, next) => {
     if (!req.headers.cookie)
         return res.status(401).send('You are not logged in');
     try {
-        const token=req.headers.cookie.split('=')[1] ;
+        const auth_token=req.headers.cookie.split(';')[1] ;
+        const token=auth_token.split('=')[1];
         const verified = jwt.verify(token, JWT_KEY);
         console.log(verified)
         if (!verified.student_id)

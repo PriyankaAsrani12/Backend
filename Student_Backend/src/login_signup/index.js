@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
             student_password,
             using_google = false,
             customer_id,
-        } = req.body;
+        } = req.bod.values;
 
         //Don't change it to let otherwise DB is will not connect
         //Check if student exists
@@ -72,21 +72,21 @@ router.post('/register', async (req, res) => {
 
         //Hit email api for welcome email
         
-        const myobj={
-            "to": "+917875192358",
-            "from": "+16672136410",
-            "sender_name": "oyesters_training",
-            "body": "This is trial body",
-            "method": "twilio",
-            "sender_id": 2,
-            "customer_id": 1
-        }
+        // const myobj={
+        //     "to": "+917875192358",
+        //     "from": "+16672136410",
+        //     "sender_name": "oyesters_training",
+        //     "body": "This is trial body",
+        //     "method": "twilio",
+        //     "sender_id": 2,
+        //     "customer_id": 1
+        // }
 
-        JWT_token=codingJWT(myobj)
-        res.redirect(`http://localhost:5050/sms/${JWT_token}/`)
+        // JWT_token=codingJWT(myobj)
+        // res.redirect(`http://localhost:5050/sms/${JWT_token}/`)
         //Hit sms api for welcome sms
 
-        // res.redirect(307, '/student/auth/login');
+        res.redirect(307, '/student/auth/login');
     } 
     catch (err) {
         console.log("Error")
@@ -102,11 +102,12 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         //Fetching data from body of post request
+        console.log(req.body)
         const {
             student_email,
             student_password = '',
             using_google = false,
-        } = req.body;
+        } = req.body.values;
 
         //Checking if student exists
         const sqlCheck = await Student.findOne({
@@ -166,6 +167,7 @@ router.post('/login', async (req, res) => {
         }
     } 
     catch (err) {
+        console.log(err)
         return res.status(500).json({
             success: 0,
             error: 'Database connection error',
@@ -195,7 +197,7 @@ router.get("/logout",async(req,res,next)=>{
 router.post('/forgotPassword', async (req, res) => {
     try {
         //Fetch email from body of post request
-        const { student_email } = req.body;
+        const { student_email } = req.body.values;
 
         //Fetching data
         sqlCheck = await Student.findOne({
@@ -221,23 +223,25 @@ router.post('/forgotPassword', async (req, res) => {
             }
         );
 
-        const myobj={
-            bounce_address: BOUNCE_MAIL,
-            from: { address: SENDERS_MAIL, name: 'Oyesters Training' },
-            to: student_email,
-            sender_name:"OYESTR",
-            sender_id: 1,
-            customer_id: sqlCheck.dataValues.customer_id,
-            method:"default",
-            subject: 'Welcome!!!!!!',
-            htmlbody: `Nice to have you here.
-                <h2>Reset Your Password</h2>
-                <a href="http://localhost:3002/student/auth/resetPassword">Reset</a>
-                `,
-        }
+        // const myobj={
+        //     bounce_address: BOUNCE_MAIL,
+        //     from: { address: SENDERS_MAIL, name: 'Oyesters Training' },
+        //     to: student_email,
+        //     sender_name:"OYESTR",
+        //     sender_id: 1,
+        //     customer_id: sqlCheck.dataValues.customer_id,
+        //     method:"default",
+        //     subject: 'Welcome!!!!!!',
+        //     htmlbody: `Nice to have you here.
+        //         <h2>Reset Your Password</h2>
+        //         <a href="http://localhost:3002/student/auth/resetPassword">Reset</a>
+        //         `,
+        // }
 
-        JWT_token=codingJWT(myobj)
-        res.redirect(`http://localhost:5000/email/${JWT_token}/`)
+        // JWT_token=codingJWT(myobj)
+        // res.redirect(`http://localhost:5000/email/${JWT_token}/`)
+        //res.redirect('/student/auth/resetPassword')
+        res.send("Hit email api")
  
     } 
     catch (err) {
@@ -252,7 +256,7 @@ router.post('/forgotPassword', async (req, res) => {
   
 router.post('/resetPassword', async (req, res) => {
     try {
-        const { student_email, new_password } = req.body;
+        const { student_email, new_password } = req.body.values;
         console.log(req.body)
         //Verifying JWT token
  
@@ -414,5 +418,25 @@ router.post('/profile', verifyToken, async(req, res) => {
       });
     }
 });
+
+router.get('/enabled', verifyToken, async (req, res) => {
+    try {
+      const result = await User.findOne({
+        where: { customer_id: 1 },
+        attributes: ['customer_blogs', 'customer_affiliate'],
+      });
+      return res.status(200).json({
+        success: 1,
+        result,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json({
+        success: 0,
+        error: 'Could not fetch data',
+      });
+    }
+  });
+  
 
 module.exports = router;

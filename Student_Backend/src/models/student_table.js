@@ -76,19 +76,19 @@ const Student = db.define('student_table', {
     type: STRING,
     allowNull: true,
   },
-//   student_cart_items:{
-//     type:STRING((255)),
+  student_cart_items:{
+    type:STRING((255)),
     
-//     defaultValue: 0,
-//   },
-//   student_wish_list_items:{
-//     type:STRING((255)),
-//     defaultValue: 0,
-//   },
-//   student_saved_for_later:{
-//     type:STRING((255)),
-//     defaultValue: 0,
-//   }
+    defaultValue: 0,
+  },
+  student_wish_list_items:{
+    type:STRING((255)),
+    defaultValue: 0,
+  },
+  student_saved_for_later:{
+    type:STRING((255)),
+    defaultValue: 0,
+  }
 
 },{
   timestamps:true
